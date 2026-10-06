@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>等待状态变化测试</title>
+</head>
+
+<body>
+
+<h2>Selenium 等待测试</h2>
+
+<button id="start">开始提交</button>
+
+<p id="result">尚未提交</p>
+
+<p id="loading" style="display:none;">
+    正在处理中...
+</p>
+
+<script>
+    const startButton = document.getElementById("start");
+    const result = document.getElementById("result");
+    const loading = document.getElementById("loading");
+
+    startButton.addEventListener("click", function () {
+
+        result.innerText = "处理中";
+        loading.style.display = "block";
+
+        setTimeout(function () {
+            result.innerText = "提交成功";
+            loading.style.display = "none";
+        }, 3000);
+
+    });
+</script>
+
+</body>
+
+</html>
