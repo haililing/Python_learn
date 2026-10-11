@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TEST-009｜优惠码验证练习</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; color: #203042; background: #f5f7fb; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 48px 18px; }
+    .container { max-width: 740px; margin: auto; }
+    .eyebrow { color:#4666a0; letter-spacing: .12em; font-weight: 700; font-size: 12px; text-transform: uppercase; }
+    h1 { margin: 10px 0 8px; font-size: clamp(25px, 4vw, 34px); letter-spacing: -.04em; }
+    .lead { margin: 0 0 26px; color: #5b6a7c; line-height: 1.7; }
+    .card { background: white; border:1px solid #e2e7ef; border-radius: 18px; box-shadow: 0 12px 32px rgba(24, 43, 75, .05); padding: 28px; }
+    .summary { display:flex; justify-content:space-between; gap:15px; align-items:center; padding: 19px 21px; border-radius:13px; background:#f4f7fc; margin-bottom: 26px; }
+    .summary .small { color:#687a90; display:block; margin-bottom:7px; font-size:13px; }
+    .price-old { text-decoration: line-through; color:#8391a3; font-size:17px; }
+    .price-current { font-weight: 750; font-size: 28px; color:#182e4e; font-variant-numeric:tabular-nums; }
+    label { font-weight:700; display:block; margin-bottom:10px; }
+    .controls { display: flex; gap: 10px; }
+    input { width:100%; min-width:0; border:1px solid #cbd5e3; border-radius:10px; padding: 13px 14px; font-size:16px; outline-offset: 2px; }
+    input:focus { outline: 2px solid #8eaff0; border-color:#648fdf; }
+    button { appearance:none; cursor:pointer; border-radius:10px; padding: 13px 17px; border: 1px solid transparent; font-weight:700; font-size:14px; white-space:nowrap; }
+    .primary { background:#2455ac; color:#fff; }
+    .primary:hover:not(:disabled) { background:#1d478f; }
+    button:disabled { opacity:.43; cursor:not-allowed; }
+    .secondary { background:#fff; color:#4d5e74; border-color:#cbd5e3; }
+    .secondary:hover { background:#f5f7fb; }
+    .feedback { min-height: 58px; display:flex; align-items:center; margin-top: 18px; padding: 12px 15px; border-radius:11px; background:#f5f7fa; color:#697789; font-weight:600; line-height:1.5; }
+    .feedback.success { background:#eaf7ee; color:#246f40; }
+    .feedback.error { background:#fff0ef; color:#a53731; }
+    .feedback.loading { background:#eef4ff; color:#285baf; }
+    .hint { font-size:13px; margin-top: 12px; color:#687a90; line-height:1.7; }
+    .guide { margin-top:25px; padding:18px 21px; background:#fff; border: 1px solid #e2e7ef; border-radius: 14px; }
+    .guide h2 { font-size:16px; margin:0 0 10px; }
+    .guide p { margin:6px 0; font-size:14px; line-height:1.7; color:#57677b; }
+    code { background:#eef2f8; border-radius:5px; padding:2px 5px; color:#294978; }
+    footer { margin-top:18px; color:#8090a3; font-size:12px; text-align:center; }
+    @media(max-width:530px) {body{padding-top:25px}.card{padding:18px}.controls{flex-wrap:wrap}.controls input{flex-basis:100%}.controls button{flex:1}.summary{padding:16px}}
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="eyebrow">Offline Automation Practice · TEST-009</div>
+    <h1>优惠码验证</h1>
+    <p class="lead">模拟电商结算页的优惠码功能。页面完全离线运行，点击验证后会有一段模拟处理时间。</p>
+    <section class="card" aria-label="优惠码应用区域">
+      <div class="summary">
+        <div><span class="small">订单原价</span><span class="price-old" id="original-price">¥100</span></div>
+        <div style="text-align:right"><span class="small">当前应付</span><span class="price-current" id="final-price">¥100</span></div>
+      </div>
+      <label for="coupon-code">优惠码</label>
+      <div class="controls">
+        <input id="coupon-code" name="coupon" type="text" autocomplete="off" placeholder="请输入优惠码" aria-describedby="code-hint">
+        <button id="apply-coupon" class="primary" type="button" disabled>验证并应用</button>
+        <button id="reset-coupon" class="secondary" type="button">重置</button>
+      </div>
+      <div id="coupon-feedback" class="feedback" role="status" aria-live="polite">尚未验证</div>
+      <p class="hint" id="code-hint">输入内容为空或只有空格时，验证按钮不可点击。</p>
+    </section>
+    <section class="guide" aria-label="测试环境业务规则">
+      <h2>测试环境规则</h2>
+      <p>• <code>SAVE20</code>：有效优惠码，应用后减免 ¥20。</p>
+      <p>• <code>EXPIRED</code>：已过期，提示错误，不享受优惠。</p>
+      <p>• 其他非空优惠码：无效，提示错误，不享受优惠。</p>
+      <p>• 点击“重置”：清空输入与验证状态，应付金额恢复为 ¥100。</p>
+      <p>• 验证过程有短暂延迟，期间验证按钮暂时不可点击。</p>
+    </section>
+    <footer>本地练习页面 · 不连接服务器 · 不收集数据</footer>
+  </main>
+  <script>
+    (() => {
+      const input = document.getElementById('coupon-code');
+      const apply = document.getElementById('apply-coupon');
+      const reset = document.getElementById('reset-coupon');
+      const feedback = document.getElementById('coupon-feedback');
+      const finalPrice = document.getElementById('final-price');
+      let busy = false;
+      let generation = 0;
+
+      function setFeedback(text, type = '') {
+        feedback.textContent = text;
+        feedback.className = 'feedback' + (type ? ' ' + type : '');
+      }
+      function updateButton() {
+        apply.disabled = busy || input.value.trim().length === 0;
+      }
+      input.addEventListener('input', () => {
+        if (!busy) {
+          finalPrice.textContent = '¥100';
+          setFeedback('尚未验证');
+        }
+        updateButton();
+      });
+      apply.addEventListener('click', () => {
+        if (busy || input.value.trim().length === 0) return;
+        const code = input.value.trim();
+        const currentGeneration = ++generation;
+        busy = true;
+        updateButton();
+        setFeedback('正在验证优惠码…', 'loading');
+        finalPrice.textContent = '¥100';
+        window.setTimeout(() => {
+          if (currentGeneration !== generation) return;
+          busy = false;
+          if (code === 'SAVE20') {
+            finalPrice.textContent = '¥80';
+            setFeedback('优惠码应用成功，已减免 ¥20', 'success');
+          } else if (code === 'EXPIRED') {
+            setFeedback('优惠码已过期', 'error');
+          } else {
+            setFeedback('优惠码无效', 'error');
+          }
+          updateButton();
+        }, 1200);
+      });
+      reset.addEventListener('click', () => {
+        generation += 1;
+        busy = false;
+        input.value = '';
+        finalPrice.textContent = '¥100';
+        setFeedback('尚未验证');
+        updateButton();
+      });
+      updateButton();
+    })();
+  </script>
+</body>
+</html>
