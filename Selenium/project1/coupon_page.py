@@ -7,6 +7,8 @@ class CouponPage:
     COUPON_INPUT = (By.ID, "coupon-code")
     APPLY_BUTTON = (By.ID, "apply-coupon")
     FINAL_PRICE = (By.ID, "final-price")
+    COUPON_FEEDBACK = (By.ID,"coupon-feedback")
+    APPLY_COUPON = (By.ID, "apply-coupon")
 
     def __init__(self, driver):
         self.driver = driver
@@ -28,4 +30,17 @@ class CouponPage:
         self.wait_clickable(self.APPLY_BUTTON)
 
     def get_final_price(self):
-        return self.wait_clickable(self.FINAL_PRICE).text
+        return self.get_text(self.FINAL_PRICE)
+
+    def get_text(self,locator):
+        return self.wait.until(
+            EC.visibility_of_element_located(locator)
+        ).text
+
+    def get_feedback(self):
+        return self.get_text(self.COUPON_FEEDBACK)
+
+    def is_apply_enabled(self):
+        return self.wait.until(
+            EC.visibility_of_element_located(self.APPLY_COUPON)
+        ).is_enabled()
