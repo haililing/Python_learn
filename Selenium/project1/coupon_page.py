@@ -9,6 +9,7 @@ class CouponPage:
     FINAL_PRICE = (By.ID, "final-price")
     COUPON_FEEDBACK = (By.ID,"coupon-feedback")
     APPLY_COUPON = (By.ID, "apply-coupon")
+    RESET_COUPON = (By.ID,"reset-coupon")
 
     def __init__(self, driver):
         self.driver = driver
@@ -44,3 +45,12 @@ class CouponPage:
         return self.wait.until(
             EC.visibility_of_element_located(self.APPLY_COUPON)
         ).is_enabled()
+
+    def button_reset_coupon(self):
+        self.wait_clickable(self.RESET_COUPON).click()
+
+    def get_coupon_code(self):
+        input_el = self.wait.until(
+            EC.visibility_of_element_located(self.COUPON_INPUT)
+        )
+        return input_el.get_attribute("value")
